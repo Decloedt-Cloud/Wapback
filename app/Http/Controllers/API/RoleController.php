@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
@@ -85,5 +86,20 @@ class RoleController extends Controller
         $role->delete();
 
         return response()->json(['message' => 'Role deleted successfully']);
+    }
+
+    public function assignPermissions(Request $request, Role $role)
+    {
+        $request->validate([
+            'permissions' => 'required|array',
+            'permissions.*' => 'exists:permissions,id',
+        ]);
+
+        $role->syncPermissions($request->permissions);
+
+        return response()->json([
+            'message' => 'Permissions assigned successfully',
+            'role' => $role->load('permissions')
+        ]);
     }
 }
