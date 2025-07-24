@@ -8,16 +8,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-class User extends Authenticatable
+
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+   protected $guarded = [];
 
     protected $hidden = [
         'password',
@@ -31,4 +29,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+ public function cliente()
+{
+    return $this->hasOne(Client::class);
+}
+
+public function intervenant()
+{
+    return $this->hasOne(Intervenant::class);
+}
+
 }

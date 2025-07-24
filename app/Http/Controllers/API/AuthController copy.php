@@ -9,18 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\Client;
-use Illuminate\Support\Facades\Password;
-use App\Models\Intervenant;
 use App\Mail\ClientConfirmationMail;
-use App\Mail\IntervenantConfirmationMail;
-use App\Mail\PasswordResetMail;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\IntervenantConfirmationMail;
 
 
 
+
+use App\Models\Intervenant;
 
 class AuthController extends Controller
 {
@@ -76,25 +72,25 @@ class AuthController extends Controller
 
     public function registerClient(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
-            ],
-            'sexe' => 'required|in:Homme,Femme',
-            'nom' => 'required|string|max:255',
-            'prenom' => 'nullable|string|max:255',
-            'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
-            'adresse' => 'required|string|max:255',
-            'indicatif' => 'nullable|string|max:10',
-            'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
-            'conditions' => 'accepted',
-        ]);
+        // $request->validate([
+        //     'name' => 'required|string|max:255',
+        //     'email' => 'required|string|email|max:255|unique:users',
+        //     'password' => [
+        //         'required',
+        //         'string',
+        //         'min:8',
+        //         'confirmed',
+        //         'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+        //     ],
+        //     'sexe' => 'required|in:Homme,Femme',
+        //     'nom' => 'required|string|max:255',
+        //     'prenom' => 'nullable|string|max:255',
+        //     'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
+        //     'adresse' => 'required|string|max:255',
+        //     'indicatif' => 'nullable|string|max:10',
+        //     'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
+        //     'conditions' => 'accepted',
+        // ]);
 
         $user = User::create([
             'name' => $request->name,
@@ -118,6 +114,7 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
         Mail::to($user->email)->send(new ClientConfirmationMail($user));
 
+
         return response()->json([
             'message' => 'Inscription client réussie',
             'user' => $user->load('roles.permissions', 'cliente'),
@@ -127,25 +124,25 @@ class AuthController extends Controller
 
     public function registerIntervenant(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
-            ],
-            'type_entreprise' => 'required|in:Auto-Entrepreneur,Freelancer,Entreprise',
-            'nom_entreprise' => 'required_if:type_entreprise,Entreprise|string|max:255',
-            'activite_entreprise' => 'nullable|string|max:255',
-            'categorie_activite' => 'nullable|string|max:255',
-            'ville' => 'required|string|max:255',
-            'adresse' => 'required|string|max:255',
-            'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
-            'conditions' => 'accepted',
-        ]);
+        // $request->validate([
+        //     'name' => 'required|string|max:255',
+        //     'email' => 'required|string|email|max:255|unique:users',
+        //     'password' => [
+        //         'required',
+        //         'string',
+        //         'min:8',
+        //         'confirmed',
+        //         'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+        //     ],
+        //     'type_entreprise' => 'required|in:Auto-Entrepreneur,Freelancer,Entreprise',
+        //     'nom_entreprise' => 'required_if:type_entreprise,Entreprise|string|max:255',
+        //     'activite_entreprise' => 'nullable|string|max:255',
+        //     'categorie_activite' => 'nullable|string|max:255',
+        //     'ville' => 'required|string|max:255',
+        //     'adresse' => 'required|string|max:255',
+        //     'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
+        //     'conditions' => 'accepted',
+        // ]);
 
         $user = User::create([
             'name' => $request->name,
@@ -177,9 +174,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-
-
-
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -196,54 +190,43 @@ class AuthController extends Controller
         ]);
     }
 
-
-    // Envoi du mail avec lien signé
-    public function sendResetEmail(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        $resetUrl = URL::temporarySignedRoute(
-            'password.reset',
-            Carbon::now()->addMinutes(60),
-            ['email' => $user->email]
-        );
-
-        Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
-
-        return response()->json(['message' => 'Email de réinitialisation envoyé avec succès.']);
-    }
-
-
-    // 2. Vérifier la validité du lien signé
-    public function verifyResetLink(Request $request)
-    {
-        if (! $request->hasValidSignature()) {
-            return response()->json(['message' => 'Lien de réinitialisation invalide ou expiré.'], 401);
-        }
-
-        return response()->json([
-            'message' => 'Lien valide, vous pouvez réinitialiser votre mot de passe.',
-            'email' => $request->query('email'),
-        ]);
-    }
-
-    // 3. Réinitialiser le mot de passe
     public function resetPassword(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8|confirmed', // password_confirmation attendu
+            'token' => 'required',
+            'password' => 'required|min:6|confirmed',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
 
-        $user->password = Hash::make($request->password);
-        $user->save();
+        return $status === Password::PASSWORD_RESET
+            ? response()->json(['message' => 'Mot de passe réinitialisé avec succès.'])
+            : response()->json(['message' => 'Erreur lors de la réinitialisation.'], 500);
+    }
 
-        return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
+
+
+
+    public function sendResetLinkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json(['message' => 'Email de réinitialisation envoyé avec succès.'])
+            : response()->json(['message' => 'Erreur lors de l\'envoi de l\'email.'], 500);
     }
 }
