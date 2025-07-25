@@ -198,23 +198,47 @@ class AuthController extends Controller
 
 
     // Envoi du mail avec lien signé
+    // public function sendResetEmail(Request $request)
+    // {
+    //     $request->validate([
+    //         'email' => 'required|email|exists:users,email',
+    //     ]);
+
+    //     $user = User::where('email', $request->email)->first();
+
+    //     $resetUrl = URL::temporarySignedRoute(
+    //         'password.reset',
+    //         Carbon::now()->addMinutes(60),
+    //         ['email' => $user->email]
+    //     );
+
+    //     Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+
+    //     return response()->json(['message' => 'Email de réinitialisation envoyé avec succès.']);
+    // }
+
     public function sendResetEmail(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->firstOrFail();
 
-        $resetUrl = URL::temporarySignedRoute(
+        // Générer l’URL temporaire signée Laravel backend
+        $signedUrl = URL::temporarySignedRoute(
             'password.reset',
             Carbon::now()->addMinutes(60),
             ['email' => $user->email]
         );
 
+        $queryString = parse_url($signedUrl, PHP_URL_QUERY);
+
+        $resetUrl = 'http://localhost:5173/Resetpassword?' . $queryString;
+
         Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
 
-        return response()->json(['message' => 'Email de réinitialisation envoyé avec succès.']);
+        return response()->json(['message' => 'Email de réinitialisation envoyé']);
     }
 
 
@@ -231,13 +255,13 @@ class AuthController extends Controller
         ]);
     }
 
-    // 3. Réinitialiser le mot de passe
     public function resetPassword(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8|confirmed', // password_confirmation attendu
+            'password' => 'required|string|min:8|confirmed', // requires password_confirmation
         ]);
+
 
         $user = User::where('email', $request->email)->first();
 

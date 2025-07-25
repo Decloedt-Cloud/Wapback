@@ -13,19 +13,13 @@ class PasswordResetMail extends Mailable
     public $user;
     public $resetUrl;
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct($user, $resetUrl)
     {
         $this->user = $user;
         $this->resetUrl = $resetUrl;
     }
 
-    /**
-     * Build the message.
-     */
-    public function build(): static
+    public function build()
     {
         return $this->subject('Réinitialisation de votre mot de passe')
                     ->view('emails.password_reset')
