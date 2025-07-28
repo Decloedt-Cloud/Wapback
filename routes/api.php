@@ -23,22 +23,40 @@ Route::post('/forgot-password', [AuthController::class, 'sendResetEmail']);
 Route::get('/reset-password', [AuthController::class, 'verifyResetLink'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
+// Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
+//     $user = User::findOrFail($id);
+
+//     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+//         return response()->json(['message' => 'Lien de vérification invalide'], 403);
+//     }
+
+//     if ($user->hasVerifiedEmail()) {
+//         return redirect('http://localhost:3000/login?already_verified=1');
+//     }
+
+//     $user->markEmailAsVerified();
+
+//     return redirect('http://localhost:3000/login?verified=1');
+// })->name('verification.verify');
+
+
 Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
+
+
 
     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
         return response()->json(['message' => 'Lien de vérification invalide'], 403);
     }
 
     if ($user->hasVerifiedEmail()) {
-        return redirect('http://localhost:3000/login?already_verified=1');
+        return redirect('http://preprod.hellowap.com/Login?already_verified=1');
     }
 
     $user->markEmailAsVerified();
 
-    return redirect('http://localhost:3000/login?verified=1');
-})->name('verification.verify');
-
+    return redirect('http://preprod.hellowap.com/Login?verified=1');
+})->middleware('signed')->name('verification.verify');
 
 
 Route::middleware('auth:sanctum')->group(function () {
