@@ -35,19 +35,34 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
         }
 
+        // ✅ Check if email is verified
+        if (!$user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => ['Votre adresse email n\'a pas encore été vérifiée. Veuillez vérifier votre boîte mail.'],
+            ]);
+        }
 
-        return $this->authRepository->login($request);
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => $user->load('roles.permissions'),
+            'token' => $token,
+        ]);
     }
-
 
 
     public function registerClient(Request $request)
