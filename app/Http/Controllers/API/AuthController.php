@@ -1,52 +1,20 @@
 <?php
-// app/Http/Controllers/API/AuthController.php
 
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Repositories\Interfaces\AuthRepositoryInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use App\Models\Client;
-use Illuminate\Support\Facades\Password;
-use App\Models\Intervenant;
-use App\Mail\ClientConfirmationMail;
-use App\Mail\IntervenantConfirmationMail;
-use App\Mail\PasswordResetMail;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
-
-
-
 
 class AuthController extends Controller
 {
-    // public function login(Request $request)
-    // {
-    //     $request->validate([
-    //         'email' => 'required|email',
-    //         'password' => 'required',
-    //     ]);
+    protected $authRepository;
 
-    //     $user = User::where('email', $request->email)->first();
-
-    //     if (!$user || !Hash::check($request->password, $user->password)) {
-    //         throw ValidationException::withMessages([
-    //             'email' => ['The provided credentials are incorrect.'],
-    //         ]);
-    //     }
-
-    //     $token = $user->createToken('api-token')->plainTextToken;
-
-    //     return response()->json([
-    //         'message' => 'Login successful',
-    //         'user' => $user->load('roles.permissions'),
-    //         'token' => $token,
-    //     ]);
-    // }
+    public function __construct(AuthRepositoryInterface $authRepository)
+    {
+        $this->authRepository = $authRepository;
+    }
 
     public function login(Request $request)
     {
@@ -55,55 +23,20 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $result = $this->authRepository->login($request->email, $request->password);
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$result['success']) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => [$result['message']],
             ]);
         }
-
-        // ✅ Check if email is verified
-        if (!$user->hasVerifiedEmail()) {
-            throw ValidationException::withMessages([
-                'email' => ['Votre adresse email n\'a pas encore été vérifiée. Veuillez vérifier votre boîte mail.'],
-            ]);
-        }
-
-        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user->load('roles.permissions'),
-            'token' => $token,
+            'user' => $result['user'],
+            'token' => $result['token'],
         ]);
     }
-
-    // public function register(Request $request)
-    // {
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:8|confirmed',
-    //     ]);
-
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => Hash::make($request->password),
-    //     ]);
-
-    //     // Assign default role
-    //     $user->assignRole('cliente');
-
-    //     $token = $user->createToken('api-token')->plainTextToken;
-
-    //     return response()->json([
-    //         'message' => 'Registration successful',
-    //         'user' => $user->load('roles.permissions'),
-    //         'token' => $token,
-    //     ], 201);
-    // }
 
     public function registerClient(Request $request)
     {
@@ -127,32 +60,12 @@ class AuthController extends Controller
             'conditions' => 'accepted',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $user->assignRole('cliente');
-
-        Client::create([
-            'user_id' => $user->id,
-            'sexe' => $request->sexe,
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'nationalite' => $request->nationalite,
-            'adresse' => $request->adresse,
-            'indicatif' => $request->indicatif,
-            'telephone' => $request->telephone,
-        ]);
-
-        $token = $user->createToken('api-token')->plainTextToken;
-        Mail::to($user->email)->send(new ClientConfirmationMail($user));
+        $user = $this->authRepository->registerClient($request->all());
 
         return response()->json([
             'message' => 'Inscription client réussie',
             'user' => $user->load('roles.permissions', 'cliente'),
-            'token' => $token,
+            'token' => $user->createToken('api-token')->plainTextToken,
         ], 201);
     }
 
@@ -178,75 +91,32 @@ class AuthController extends Controller
             'conditions' => 'accepted',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $user->assignRole('intervenant');
-
-        Intervenant::create([
-            'user_id' => $user->id,
-            'type_entreprise' => $request->type_entreprise,
-            'nom_entreprise' => $request->nom_entreprise,
-            'activite_entreprise' => $request->activite_entreprise,
-            'categorie_activite' => $request->categorie_activite,
-            'ville' => $request->ville,
-            'adresse' => $request->adresse,
-            'telephone' => $request->telephone,
-        ]);
-
-        $token = $user->createToken('api-token')->plainTextToken;
-        Mail::to($user->email)->send(new IntervenantConfirmationMail($user));
-
+        $user = $this->authRepository->registerIntervenant($request->all());
 
         return response()->json([
             'message' => 'Inscription intervenant réussie',
             'user' => $user->load('roles.permissions', 'intervenant'),
-            'token' => $token,
+            'token' => $user->createToken('api-token')->plainTextToken,
         ], 201);
     }
 
-
-
-
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authRepository->logout($request->user());
 
         return response()->json([
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ]);
     }
 
     public function me(Request $request)
     {
+        $user = $this->authRepository->me($request->user());
+
         return response()->json([
-            'user' => $request->user()->load('roles.permissions')
+            'user' => $user->load('roles.permissions'),
         ]);
     }
-
-
-    // Envoi du mail avec lien signé
-    // public function sendResetEmail(Request $request)
-    // {
-    //     $request->validate([
-    //         'email' => 'required|email|exists:users,email',
-    //     ]);
-
-    //     $user = User::where('email', $request->email)->first();
-
-    //     $resetUrl = URL::temporarySignedRoute(
-    //         'password.reset',
-    //         Carbon::now()->addMinutes(60),
-    //         ['email' => $user->email]
-    //     );
-
-    //     Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
-
-    //     return response()->json(['message' => 'Email de réinitialisation envoyé avec succès.']);
-    // }
 
     public function sendResetEmail(Request $request)
     {
@@ -254,29 +124,14 @@ class AuthController extends Controller
             'email' => 'required|email|exists:users,email',
         ]);
 
-        $user = User::where('email', $request->email)->firstOrFail();
-
-        // Générer l’URL temporaire signée Laravel backend
-        $signedUrl = URL::temporarySignedRoute(
-            'password.reset',
-            Carbon::now()->addMinutes(60),
-            ['email' => $user->email]
-        );
-
-        $queryString = parse_url($signedUrl, PHP_URL_QUERY);
-
-        $resetUrl = 'http://preprod.hellowap.com/Resetpassword?' . $queryString;
-
-        Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+        $this->authRepository->sendResetEmail($request->email);
 
         return response()->json(['message' => 'Email de réinitialisation envoyé']);
     }
 
-
-    // 2. Vérifier la validité du lien signé
     public function verifyResetLink(Request $request)
     {
-        if (! $request->hasValidSignature()) {
+        if (!$this->authRepository->verifyResetLink($request)) {
             return response()->json(['message' => 'Lien de réinitialisation invalide ou expiré.'], 401);
         }
 
@@ -290,14 +145,14 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8|confirmed', // requires password_confirmation
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
+        $success = $this->authRepository->resetPassword($request->email, $request->password);
 
-        $user = User::where('email', $request->email)->first();
-
-        $user->password = Hash::make($request->password);
-        $user->save();
+        if (!$success) {
+            return response()->json(['message' => 'Échec de la réinitialisation du mot de passe.'], 500);
+        }
 
         return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
     }
