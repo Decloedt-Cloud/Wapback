@@ -6,7 +6,7 @@ return [
 
 'allowed_methods' => ['*'],
 
-'allowed_origins' => ['http://preprod.hellowap.com'],
+'allowed_origins' => ['http://preprod.hellowap.com', 'http://localhost:3000', 'http://localhost:8000', 'http://localhost:5173'],
 
 'allowed_headers' => ['*'],
 
@@ -14,3 +14,4 @@ return [
 
 
 ];
+
