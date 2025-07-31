@@ -2,16 +2,24 @@
 
 return [
 
- 'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-'allowed_methods' => ['*'],
+    'allowed_methods' => ['*'],
 
-'allowed_origins' => ['http://preprod.hellowap.com', 'http://localhost:3000', 'http://localhost:8000', 'http://localhost:5173'],
+    'allowed_origins' => [
+        'http://localhost:5173', // Vite
+        'http://localhost:3000', // React par défaut
+        'http://localhost:8000', // API locale
+        'http://preprod.hellowap.com', // Ton environnement distant
+    ],
 
-'allowed_headers' => ['*'],
+    'allowed_origins_patterns' => [],
 
-'supports_credentials' => true,
+    'allowed_headers' => ['*'],
 
+    'exposed_headers' => [],
 
+    'max_age' => 0,
+
+    'supports_credentials' => true, // Obligatoire pour Sanctum
 ];
-
