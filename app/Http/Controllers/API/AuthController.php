@@ -1,42 +1,54 @@
 <?php
+// app/Http/Controllers/API/AuthController.php
 
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\Interfaces\AuthRepositoryInterface;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Models\Client;
+use Illuminate\Support\Facades\Password;
+use App\Models\Intervenant;
+use App\Mail\ClientConfirmationMail;
+use App\Mail\IntervenantConfirmationMail;
+use App\Mail\PasswordResetMail;
+use App\Repositories\Interfaces\AuthRepositoryInterface;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+
+
+
 
 class AuthController extends Controller
 {
+
     protected $authRepository;
 
-    public function __construct(AuthRepositoryInterface $authRepository)
+    public function __construct(AuthRepositoryInterface $AuthRepository)
     {
-        $this->authRepository = $authRepository;
+        $this->authRepository = $AuthRepository;
     }
 
     public function login(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $result = $this->authRepository->login($request->email, $request->password);
-
-        if (!$result['success']) {
-            throw ValidationException::withMessages([
-                'email' => [$result['message']],
-            ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
         }
 
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => $result['user'],
-            'token' => $result['token'],
-        ]);
+
+        return $this->authRepository->login($request);
     }
+
+
 
     public function registerClient(Request $request)
     {
@@ -60,13 +72,7 @@ class AuthController extends Controller
             'conditions' => 'accepted',
         ]);
 
-        $user = $this->authRepository->registerClient($request->all());
-
-        return response()->json([
-            'message' => 'Inscription client réussie',
-            'user' => $user->load('roles.permissions', 'cliente'),
-            'token' => $user->createToken('api-token')->plainTextToken,
-        ], 201);
+        return $this->authRepository->registerClient($request);
     }
 
     public function registerIntervenant(Request $request)
@@ -91,69 +97,47 @@ class AuthController extends Controller
             'conditions' => 'accepted',
         ]);
 
-        $user = $this->authRepository->registerIntervenant($request->all());
 
-        return response()->json([
-            'message' => 'Inscription intervenant réussie',
-            'user' => $user->load('roles.permissions', 'intervenant'),
-            'token' => $user->createToken('api-token')->plainTextToken,
-        ], 201);
+        return $this->authRepository->registerIntervenant($request);
     }
+
+
+
 
     public function logout(Request $request)
     {
-        $this->authRepository->logout($request->user());
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logged out successfully',
+            'message' => 'Logged out successfully'
         ]);
     }
 
     public function me(Request $request)
     {
-        $user = $this->authRepository->me($request->user());
-
         return response()->json([
-            'user' => $user->load('roles.permissions'),
+            'user' => $request->user()->load('roles.permissions')
         ]);
     }
+
 
     public function sendResetEmail(Request $request)
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
-
-        $this->authRepository->sendResetEmail($request->email);
-
-        return response()->json(['message' => 'Email de réinitialisation envoyé']);
+        return $this->authRepository->sendResetEmail($request);
     }
 
+
+    // 2. Vérifier la validité du lien signé
     public function verifyResetLink(Request $request)
     {
-        if (!$this->authRepository->verifyResetLink($request)) {
-            return response()->json(['message' => 'Lien de réinitialisation invalide ou expiré.'], 401);
-        }
-
-        return response()->json([
-            'message' => 'Lien valide, vous pouvez réinitialiser votre mot de passe.',
-            'email' => $request->query('email'),
-        ]);
+        return $this->authRepository->verifyResetLink($request);
     }
 
     public function resetPassword(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $success = $this->authRepository->resetPassword($request->email, $request->password);
-
-        if (!$success) {
-            return response()->json(['message' => 'Échec de la réinitialisation du mot de passe.'], 500);
-        }
-
-        return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
+        return $this->authRepository->resetPassword($request);
     }
 }

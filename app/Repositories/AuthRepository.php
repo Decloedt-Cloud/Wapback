@@ -15,14 +15,17 @@ use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use App\Repositories\Interfaces\AuthRepositoryInterface;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 
 class AuthRepository implements AuthRepositoryInterface
 {
-    public function login(string $email, string $password)
+    public function login($request)
     {
-        $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($password, $user->password)) {
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -30,84 +33,90 @@ class AuthRepository implements AuthRepositoryInterface
 
         if (!$user->hasVerifiedEmail()) {
             throw ValidationException::withMessages([
-                'email' => ["Votre adresse email n'a pas encore été vérifiée."],
+                'email' => ['Votre adresse email n\'a pas encore été vérifiée. Veuillez vérifier votre boîte mail.'],
             ]);
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
 
         return [
-            'user' => $user->load('roles.permissions'),
-            'token' => $token,
+            'success' => true,
+            'message' => 'Connexion réussie.',
+            'data' => [
+                'user' => $user->load('roles.permissions'),
+                'token' => $token,
+            ]
         ];
     }
 
-    public function registerClient(array $data)
+    public function registerClient($request)
     {
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
         $user->assignRole('cliente');
 
         Client::create([
             'user_id' => $user->id,
-            'sexe' => $data['sexe'],
-            'nom' => $data['nom'],
-            'prenom' => $data['prenom'] ?? null,
-            'nationalite' => $data['nationalite'],
-            'adresse' => $data['adresse'],
-            'indicatif' => $data['indicatif'] ?? null,
-            'telephone' => $data['telephone'] ?? null,
+            'sexe' => $request->sexe,
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'nationalite' => $request->nationalite,
+            'adresse' => $request->adresse,
+            'indicatif' => $request->indicatif,
+            'telephone' => $request->telephone,
         ]);
 
+        $token = $user->createToken('api-token')->plainTextToken;
         Mail::to($user->email)->send(new ClientConfirmationMail($user));
 
-        return $user;
+        return response()->json([
+            'message' => 'Inscription client réussie',
+            'user' => $user->load('roles.permissions', 'cliente'),
+            'token' => $token,
+        ], 201);
     }
-
-    public function registerIntervenant(array $data)
+    public function registerIntervenant($request)
     {
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
-
         $user->assignRole('intervenant');
 
         Intervenant::create([
             'user_id' => $user->id,
-            'type_entreprise' => $data['type_entreprise'],
-            'nom_entreprise' => $data['nom_entreprise'] ?? null,
-            'activite_entreprise' => $data['activite_entreprise'] ?? null,
-            'categorie_activite' => $data['categorie_activite'] ?? null,
-            'ville' => $data['ville'],
-            'adresse' => $data['adresse'],
-            'telephone' => $data['telephone'] ?? null,
+            'type_entreprise' => $request->type_entreprise,
+            'nom_entreprise' => $request->nom_entreprise,
+            'activite_entreprise' => $request->activite_entreprise,
+            'categorie_activite' => $request->categorie_activite,
+            'ville' => $request->ville,
+            'adresse' => $request->adresse,
+            'telephone' => $request->telephone,
         ]);
 
+        $token = $user->createToken('api-token')->plainTextToken;
         Mail::to($user->email)->send(new IntervenantConfirmationMail($user));
 
-        return $user;
+
+        return response()->json([
+            'message' => 'Inscription intervenant réussie',
+            'user' => $user->load('roles.permissions', 'intervenant'),
+            'token' => $token,
+        ], 201);
     }
 
-    public function logout(User $user)
-    {
-        $user->currentAccessToken()->delete();
-    }
 
-    public function me(User $user): User
-    {
-        return $user->load('roles.permissions');
-    }
 
-    public function sendResetEmail(string $email)
+    public function sendResetEmail($request)
     {
-        $user = User::where('email', $email)->firstOrFail();
+        $user = User::where('email', $request->email)->firstOrFail();
 
+        // Générer l’URL temporaire signée Laravel backend
         $signedUrl = URL::temporarySignedRoute(
             'password.reset',
             Carbon::now()->addMinutes(60),
@@ -119,20 +128,34 @@ class AuthRepository implements AuthRepositoryInterface
         $resetUrl = 'http://preprod.hellowap.com/Resetpassword?' . $queryString;
 
         Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+
+        return response()->json(['message' => 'Email de réinitialisation envoyé']);
     }
 
-    public function verifyResetLink(Request $request)
+    public function verifyResetLink($request)
     {
-        return $request->hasValidSignature();
+        if (! $request->hasValidSignature()) {
+            return response()->json(['message' => 'Lien de réinitialisation invalide ou expiré.'], 401);
+        }
+
+        return response()->json([
+            'message' => 'Lien valide, vous pouvez réinitialiser votre mot de passe.',
+            'email' => $request->query('email'),
+        ]);
     }
 
-    public function resetPassword(string $email, string $password)
+    public function resetPassword($request)
     {
-        $user = User::where('email', $email)->first();
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8|confirmed', // requires password_confirmation
+        ]);
 
-        if (!$user) return false;
+        $user = User::where('email', $request->email)->first();
 
-        $user->password = Hash::make($password);
-        return $user->save();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
     }
 }

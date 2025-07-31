@@ -10,26 +10,24 @@ interface AuthRepositoryInterface
 {
 
     // Authentification
-    public function login(string $email, string $password);
+    public function login($request);
 
     // Inscription client
-    public function registerClient(array $data);
+    public function registerClient($request);
 
     // Inscription intervenant
-    public function registerIntervenant(array $data);
+    public function registerIntervenant($request);
 
     // Déconnexion
-    public function logout(User $user);
 
     // Récupérer l'utilisateur connecté avec ses rôles et permissions
-    public function me(User $user);
 
     // Envoyer email de réinitialisation
-    public function sendResetEmail(string $email);
+    public function sendResetEmail($request);
 
     // Vérifier la validité du lien de réinitialisation (signed URL)
-    public function verifyResetLink(Request $request);
+    public function verifyResetLink($request);
 
     // Réinitialiser le mot de passe
-    public function resetPassword(string $email, string $password);
+    public function resetPassword($request);
 }
