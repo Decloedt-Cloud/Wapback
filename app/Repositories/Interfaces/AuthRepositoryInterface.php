@@ -30,4 +30,5 @@ interface AuthRepositoryInterface
 
     // Réinitialiser le mot de passe
     public function resetPassword($request);
+    public function resendConfirmation($request);
 }

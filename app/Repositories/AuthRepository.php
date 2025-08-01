@@ -71,12 +71,11 @@ class AuthRepository implements AuthRepositoryInterface
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
-        Mail::to($user->email)->send(new ClientConfirmationMail($user));
+        Mail::to($user->email)->send(mailable: new ClientConfirmationMail($user));
 
         return response()->json([
             'message' => 'Inscription client réussie',
             'user' => $user->load('roles.permissions', 'cliente'),
-            'token' => $token,
         ], 201);
     }
     public function registerIntervenant($request)
@@ -106,7 +105,6 @@ class AuthRepository implements AuthRepositoryInterface
         return response()->json([
             'message' => 'Inscription intervenant réussie',
             'user' => $user->load('roles.permissions', 'intervenant'),
-            'token' => $token,
         ], 201);
     }
 
@@ -114,7 +112,7 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function sendResetEmail($request)
     {
-        $user = User::where('email', $request->email)->firstOrFail();
+        $user = User::where('email', operator: $request->email)->firstOrFail();
 
         // Générer l’URL temporaire signée Laravel backend
         $signedUrl = URL::temporarySignedRoute(
@@ -157,5 +155,27 @@ class AuthRepository implements AuthRepositoryInterface
         $user->save();
 
         return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
+    }
+
+    public function resendConfirmation($request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        try {
+            $user = User::where('email', $request->email)->first();
+
+            Mail::to($user->email)->send(mailable: new ClientConfirmationMail($user));
+
+            return response()->json([
+                'message' => 'Email de confirmation renvoyé avec succès.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Une erreur est survenue lors de l’envoi de l’email.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
