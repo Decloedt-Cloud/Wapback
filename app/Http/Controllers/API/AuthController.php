@@ -155,4 +155,8 @@ class AuthController extends Controller
     {
         return $this->authRepository->resetPassword($request);
     }
+
+    public function resendConfirmation(Request $request){
+        return $this->authRepository->resendConfirmation($request);
+    }
 }

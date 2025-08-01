@@ -24,7 +24,7 @@ class IntervenantConfirmationMail extends Mailable
         // Génère le lien de vérification signé, valable 60 minutes
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify', // Cette route doit exister dans api.php
-            Carbon::now()->addMinutes(60),
+            Carbon::now()->addMinutes(15),
             [
                 'id' => $this->user->id,
                 'hash' => sha1($this->user->email),
