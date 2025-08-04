@@ -10,7 +10,7 @@ return [
         'http://localhost:5173', // Vite
         'http://localhost:3000', // React par défaut
         'http://localhost:8000', // API locale
-        'http://preprod.hellowap.com', // Ton environnement distant
+        'http://preprod.hellowap.com/ ', // Ton environnement distant
     ],
 
     'allowed_origins_patterns' => [],

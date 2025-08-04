@@ -123,7 +123,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         $queryString = parse_url($signedUrl, PHP_URL_QUERY);
 
-        $resetUrl = 'http://preprod.hellowap.com/Resetpassword?' . $queryString;
+        $resetUrl = 'http://preprod.hellowap.com/ /Resetpassword?' . $queryString;
 
         Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
 
