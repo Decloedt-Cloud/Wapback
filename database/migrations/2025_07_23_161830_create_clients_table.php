@@ -14,15 +14,17 @@ return new class extends Migration
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('sexe', ['Homme', 'Femme']);
-
-            $table->string('nom');
+            $table->enum('sexe', ['Homme', 'Femme'])->nullable();
+            $table->string('nom')->nullable();
             $table->string('prenom')->nullable();
-            $table->string('nationalite', 5);
-            $table->string('adresse');
+            $table->string('nationalite', 5)->nullable();
+            $table->string('adresse')->nullable();
             $table->string('indicatif', 10)->nullable();
             $table->string('telephone')->nullable();
-
+            $table->date('date_naissance')->nullable();
+            $table->string('langue_maternelle')->nullable();
+            $table->string('lieu_naissance')->nullable();
+            $table->boolean('profil_rempli')->default(false);
             $table->timestamps();
         });
     }

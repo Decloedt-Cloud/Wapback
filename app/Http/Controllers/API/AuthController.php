@@ -65,35 +65,140 @@ class AuthController extends Controller
     }
 
 
-    public function registerClient(Request $request)
+    public function registerClientStep1(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
-            ],
-            'sexe' => 'required|in:Homme,Femme',
-            'nom' => 'required|string|max:255',
-            'prenom' => 'nullable|string|max:255',
-            'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
-            'adresse' => 'required|string|max:255',
-            'indicatif' => 'nullable|string|max:10',
-            'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
-            'conditions' => 'accepted',
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email|unique:users,email',
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+                ],
+            ]);
 
-        return $this->authRepository->registerClient($request);
+            $user = User::create([
+                'email' => $request->email,
+                'name' => '',
+                'password' => Hash::make($request->password),
+            ]);
+            $user->assignRole('cliente');
+
+            Client::create(['user_id' => $user->id]);
+
+            $token = $user->createToken('api-token')->plainTextToken;
+
+            Mail::to($user->email)->send(new ClientConfirmationMail($user));
+
+            return response()->json([
+                'message' => 'Préinscription réussie. Vérifiez votre email pour continuer.',
+                'token' => $token,
+                'user_id' => $user->id
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de l\'enregistrement.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+    public function completeClientProfile(Request $request)
+    {
+        try {
+            $request->validate([
+                'sexe' => 'required|in:Homme,Femme',
+                'prenom' => 'required|regex:/^[A-Za-zÀ-ÿ\s\-]+$/',
+                'nom' => 'required|regex:/^[A-Za-zÀ-ÿ\s\-]+$/',
+                'adresse' => 'required|string|max:255',
+                'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
+                'indicatif' => 'nullable|string|max:10',
+                'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
+                'date_naissance_jour' => 'required|integer|min:1|max:31',
+                'date_naissance_mois' => 'required|integer|min:1|max:12',
+                'date_naissance_annee' => 'required|integer|min:1900|max:' . now()->year,
+                'langue_maternelle' => 'required|string|max:100',
+                'lieu_naissance' => 'required|regex:/^[A-Za-zÀ-ÿ\s\-]+$/',
+            ]);
+
+            $user = $request->user();
+
+            if (! $user->hasVerifiedEmail()) {
+                return response()->json(['message' => 'Email non vérifié.'], 403);
+            }
+
+            $user->name = $request->prenom . ' ' . $request->nom;
+            $user->save();
+
+            $client = Client::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'sexe' => $request->sexe,
+                    'nom' => $request->nom,
+                    'prenom' => $request->prenom,
+                    'adresse' => $request->adresse,
+                    'nationalite' => $request->nationalite,
+                    'indicatif' => $request->indicatif,
+                    'telephone' => $request->telephone,
+                    'date_naissance' => "{$request->date_naissance_annee}-{$request->date_naissance_mois}-{$request->date_naissance_jour}",
+                    'langue_maternelle' => $request->langue_maternelle,
+                    'lieu_naissance' => $request->lieu_naissance,
+                    'profil_rempli' => true,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Profil client complété avec succès.',
+                'client' => $client,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la complétion du profil.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    // public function registerClient(Request $request)
+    // {
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => [
+    //             'required',
+    //             'string',
+    //             'min:8',
+    //             'confirmed',
+    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
+    //         ],
+    //         'sexe' => 'required|in:Homme,Femme',
+    //         'nom' => 'required|string|max:255',
+    //         'prenom' => 'nullable|string|max:255',
+    //         'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
+    //         'adresse' => 'required|string|max:255',
+    //         'indicatif' => 'nullable|string|max:10',
+    //         'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
+    //         'conditions' => 'accepted',
+    //     ]);
+
+    //     return $this->authRepository->registerClient($request);
+    // }
 
     public function registerIntervenant(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => [
                 'required',
@@ -102,14 +207,13 @@ class AuthController extends Controller
                 'confirmed',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
             ],
-            'type_entreprise' => 'required|in:Auto-Entrepreneur,Freelancer,Entreprise',
-            'nom_entreprise' => 'required_if:type_entreprise,Entreprise|string|max:255',
-            'activite_entreprise' => 'nullable|string|max:255',
-            'categorie_activite' => 'nullable|string|max:255',
-            'ville' => 'required|string|max:255',
-            'adresse' => 'required|string|max:255',
-            'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
-            'conditions' => 'accepted',
+            // 'type_entreprise' => 'required|in:Auto-Entrepreneur,Freelancer,Entreprise',
+            // 'nom_entreprise' => 'required_if:type_entreprise,Entreprise|string|max:255',
+            // 'activite_entreprise' => 'nullable|string|max:255',
+            // 'categorie_activite' => 'nullable|string|max:255',
+            // 'ville' => 'required|string|max:255',
+            // 'adresse' => 'required|string|max:255',
+            // 'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
         ]);
 
 
@@ -156,7 +260,8 @@ class AuthController extends Controller
         return $this->authRepository->resetPassword($request);
     }
 
-    public function resendConfirmation(Request $request){
+    public function resendConfirmation(Request $request)
+    {
         return $this->authRepository->resendConfirmation($request);
     }
 }

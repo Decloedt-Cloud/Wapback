@@ -43,7 +43,8 @@ class AuthRepository implements AuthRepositoryInterface
             'success' => true,
             'message' => 'Connexion réussie.',
             'data' => [
-                'user' => $user->load('roles.permissions'),
+                'user' => $user->load('roles', 'intervenant', 'cliente'),
+
                 'token' => $token,
             ]
         ];
@@ -81,21 +82,14 @@ class AuthRepository implements AuthRepositoryInterface
     public function registerIntervenant($request)
     {
         $user = User::create([
-            'name' => $request->name,
             'email' => $request->email,
+            'name'=> '',
             'password' => Hash::make($request->password),
         ]);
         $user->assignRole('intervenant');
 
         Intervenant::create([
             'user_id' => $user->id,
-            'type_entreprise' => $request->type_entreprise,
-            'nom_entreprise' => $request->nom_entreprise,
-            'activite_entreprise' => $request->activite_entreprise,
-            'categorie_activite' => $request->categorie_activite,
-            'ville' => $request->ville,
-            'adresse' => $request->adresse,
-            'telephone' => $request->telephone,
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
@@ -105,6 +99,8 @@ class AuthRepository implements AuthRepositoryInterface
         return response()->json([
             'message' => 'Inscription intervenant réussie',
             'user' => $user->load('roles.permissions', 'intervenant'),
+            'token' => $token,
+
         ], 201);
     }
 
@@ -123,7 +119,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         $queryString = parse_url($signedUrl, PHP_URL_QUERY);
 
-        $resetUrl = 'http://preprod.hellowap.com/ /Resetpassword?' . $queryString;
+        $resetUrl = 'http://preprod.hellowap.com/Resetpassword?' . $queryString;
 
         Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
 
