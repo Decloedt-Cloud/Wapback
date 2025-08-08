@@ -15,7 +15,7 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-   protected $guarded = [];
+    protected $guarded = [];
 
     protected $hidden = [
         'password',
@@ -30,14 +30,13 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
- public function cliente()
-{
-    return $this->hasOne(Client::class);
-}
+    public function cliente()
+    {
+        return $this->hasOne(Client::class);
+    }
 
-public function intervenant()
-{
-    return $this->hasOne(Intervenant::class);
-}
-
+    public function intervenant()
+    {
+        return $this->hasOne(Intervenant::class);
+    }
 }

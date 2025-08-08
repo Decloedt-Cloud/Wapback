@@ -12,4 +12,14 @@ class Intervenant extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function documents()
+    {
+        return $this->hasMany(IntervenantDocument::class);
+    }
+
+    public function disponibilites()
+    {
+        return $this->hasMany(IntervenantDisponibilite::class);
+    }
 }

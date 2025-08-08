@@ -6,6 +6,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\PermissionController;
+use App\Http\Controllers\API\IntervenantController;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -15,9 +16,8 @@ use App\Models\User;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-Route::post('/register-client', [AuthController::class, 'registerClient']);
 Route::post('/register-intervenant', [AuthController::class, 'registerIntervenant']);
-
+Route::post('/register-client-step1', [AuthController::class, 'registerClientStep1']);
 
 Route::post('/forgot-password', [AuthController::class, 'sendResetEmail']);
 Route::get('/reset-password', [AuthController::class, 'verifyResetLink'])->name('password.reset');
@@ -60,4 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Permission routes
     Route::apiResource('permissions', PermissionController::class);
+
+    //intervenants
+    Route::apiResource('intervenants', IntervenantController::class);
+    Route::post('/register-client-step2', [AuthController::class, 'completeClientProfile']);
+
 });
