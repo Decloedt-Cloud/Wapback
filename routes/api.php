@@ -27,6 +27,7 @@ Route::post('/resend-confirmation', [AuthController::class, 'resendConfirmation'
 
 Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
+
     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
         return response()->json(['message' => 'Lien de vérification invalide'], 403);
     }
