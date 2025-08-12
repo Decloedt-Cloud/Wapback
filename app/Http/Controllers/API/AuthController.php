@@ -134,7 +134,7 @@ class AuthController extends Controller
             }
 
             $user->name = $request->prenom . ' ' . $request->nom;
-            $user->save();
+
 
             $client = Client::updateOrCreate(
                 ['user_id' => $user->id],
@@ -152,6 +152,8 @@ class AuthController extends Controller
                     'profil_rempli' => true,
                 ]
             );
+            $user->profil_rempli = true;
+            $user->save();
 
             return response()->json([
                 'message' => 'Profil client complété avec succès.',

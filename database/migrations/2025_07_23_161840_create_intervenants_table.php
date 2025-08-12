@@ -39,11 +39,10 @@ return new class extends Migration
 
             // Infos complémentaires (nullable)
             $table->date('date_naissance')->nullable();
-            $table->string('langue_maternelle')->nullable();
+            $table->json('langue_maternelle')->nullable();
             $table->string('lieu_naissance')->nullable();
             $table->json('competences')->nullable(); // champs JSON
             // Suppression douce et timestamps
-            $table->boolean('profil_rempli')->default(false);
 
             $table->softDeletes();
             $table->timestamps();
