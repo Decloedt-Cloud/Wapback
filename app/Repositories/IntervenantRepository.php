@@ -77,6 +77,11 @@ class IntervenantRepository implements IntervenantRepositoryInterface
                 $intervenant->user_id = $user->id;
             }
 
+            $langue_maternelle = explode(",", $request->langue_maternelle);
+
+// encodage en JSON
+            $json_langue_maternelle = json_encode(value: $langue_maternelle);
+            DB::commit();
             $intervenant->type_entreprise = $request->type_entreprise;
             $intervenant->nom_entreprise = $request->nom_entreprise;
             $intervenant->activite_entreprise = $request->activite_entreprise;
@@ -88,16 +93,15 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             $intervenant->prenom = $request->prenom;
             $intervenant->nom = $request->nom;
             $intervenant->date_naissance = $request->date_naissance;
-            $intervenant->langue_maternelle = $request->langue_maternelle;
+            $intervenant->langue_maternelle = $json_langue_maternelle;
             $intervenant->lieu_naissance = $request->lieu_naissance;
-            $intervenant->langue_maternelle = $request->langue_maternelle;
             $intervenant->competences = $request->competences;
-            $intervenant->profil_rempli = true;
             $intervenant->save();
 
 
             $user = auth()->user();
             $user->name = $request->nom . '  ' . $request->prenom;
+            $user->profil_rempli = true;
             $user->save();
 
 
