@@ -44,7 +44,6 @@ class AuthRepository implements AuthRepositoryInterface
             'message' => 'Connexion réussie.',
             'data' => [
                 'user' => $user->load('roles', 'intervenant', 'cliente'),
-
                 'token' => $token,
             ]
         ];
@@ -83,7 +82,7 @@ class AuthRepository implements AuthRepositoryInterface
     {
         $user = User::create([
             'email' => $request->email,
-            'name'=> '',
+            'name' => '',
             'password' => Hash::make($request->password),
         ]);
         $user->assignRole('intervenant');

@@ -79,7 +79,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
 
             $langue_maternelle = explode(",", $request->langue_maternelle);
 
-// encodage en JSON
+            // encodage en JSON
             $json_langue_maternelle = json_encode(value: $langue_maternelle);
             DB::commit();
             $intervenant->type_entreprise = $request->type_entreprise;
