@@ -11,6 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 
+
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -38,5 +39,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function intervenant()
     {
         return $this->hasOne(Intervenant::class);
+    }
+
+
+        public function vendor()
+    {
+        return $this->hasOne(Vendor::class);
     }
 }
