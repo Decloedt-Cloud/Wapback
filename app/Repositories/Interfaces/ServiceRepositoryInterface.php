@@ -10,5 +10,5 @@ use Illuminate\Http\Request;
 interface ServiceRepositoryInterface{
 
     public function store( $data);
-
+    public function index();
 }

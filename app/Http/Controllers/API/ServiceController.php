@@ -41,7 +41,10 @@ class ServiceController extends Controller
         return  $this->serviceRepository->store($request);
     }
 
-
+    public function index()
+    {
+        return $this->serviceRepository->index();
+    }
 
     // public function storeSimplePlan(Request $request)
     // {

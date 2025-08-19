@@ -135,10 +135,10 @@
                 <td class="body">
                     <div class="info-container">
                         <div class="info-content">
-                            <p><strong>Bienvenue, {{ $user->name }} !</strong></p>
+                            <p><strong>Bienvenue !</strong></p>
                             <p>Merci de vous être inscrit en tant qu'intervenant sur notre plateforme. Votre compte a été créé avec succès.</p>
 
-                            <p><strong>Nom :</strong> {{ $user->name }}</p>
+                       
                             <p><strong>Email :</strong> {{ $user->email }}</p>
                             <p><strong>Rôle :</strong> Intervenant</p>
 
