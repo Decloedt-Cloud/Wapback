@@ -40,9 +40,7 @@ class VendorRepository implements VendorRepositoryIterface
 
     public function createAccountVendor($request)
     {
-
         $userId = $request->user()->id;
-
         $existingVendor = Vendor::where('user_id', $userId)->first();
         if ($existingVendor) {
             return response()->json([

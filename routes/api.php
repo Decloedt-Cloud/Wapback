@@ -47,6 +47,9 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) 
 
 Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
+    Route::get('/user', function () {
+        return auth()->user();
+    });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');;
     Route::post('/register-client-step2', action: [AuthController::class, 'completeClientProfile']);
