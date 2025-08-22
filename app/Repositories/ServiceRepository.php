@@ -185,6 +185,40 @@ public function index()
         ], 500);
     }
 }
+public function delete($id)
+{
+    $user = auth()->user();
+
+    DB::beginTransaction();
+    try {
+        $service = Service::where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$service) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Service introuvable ou non autorisé.'
+            ], 404);
+        }
+
+        $service->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Service supprimé avec succès.'
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'La suppression du service a échoué.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
 
 }

@@ -46,6 +46,10 @@ class ServiceController extends Controller
     {
         return $this->serviceRepository->index();
     }
+    public function destroy($id)
+    {
+    return $this->serviceRepository->delete($id);
+   }
 
     // public function storeSimplePlan(Request $request)
     // {
