@@ -162,4 +162,29 @@ class ServiceRepository implements ServiceRepositoryInterface
             ], 500);
         }
     }
+public function index()
+{
+    try {
+        $user = auth()->user();
+        $services = Service::with('category:id,nom')->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Liste des services récupérée avec succès.',
+            'data'    => $services
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la récupération des services',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }
