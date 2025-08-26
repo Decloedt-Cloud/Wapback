@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class IntervenantRepository implements IntervenantRepositoryInterface
@@ -67,7 +68,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
         try {
             DB::beginTransaction();
 
-            $user = $request->user(); // ou auth()->user()
+            $user = Auth::user();
 
             // Vérifie si l'intervenant existe déjà pour cet utilisateur
             $intervenant = Intervenant::where('user_id', $user->id)->first();
@@ -99,7 +100,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             $intervenant->save();
 
 
-            $user = auth()->user();
+            $user = Auth::user();
             $user->name = $request->nom . '  ' . $request->prenom;
             $user->profil_rempli = true;
             $user->save();
