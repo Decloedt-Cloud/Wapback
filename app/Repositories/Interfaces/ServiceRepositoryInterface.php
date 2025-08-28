@@ -13,4 +13,6 @@ interface ServiceRepositoryInterface{
     public function index();
     public function delete($id);
 
+    public  function update( $request , $id);
+
 }

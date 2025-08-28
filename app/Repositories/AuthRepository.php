@@ -162,7 +162,7 @@ class AuthRepository implements AuthRepositoryInterface
         try {
             $user = User::where('email', $request->email)->first();
 
-            Mail::to($user->email)->send(mailable: new ClientConfirmationMail($user));
+            Mail::to($user->email)->send(mailable: new IntervenantConfirmationMail($user));
 
             return response()->json([
                 'message' => 'Email de confirmation renvoyé avec succès.'

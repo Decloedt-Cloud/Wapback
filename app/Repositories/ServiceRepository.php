@@ -162,63 +162,114 @@ class ServiceRepository implements ServiceRepositoryInterface
             ], 500);
         }
     }
-public function index()
-{
-    try {
-        $user = auth()->user();
-        $services = Service::with('category:id,nom')->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+    public function index()
+    {
+        try {
+            $user = auth()->user();
+            $services = Service::with('category:id,nom')->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Liste des services récupérée avec succès.',
-            'data'    => $services
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur lors de la récupération des services',
-            'error'   => $e->getMessage()
-        ], 500);
-    }
-}
-public function delete($id)
-{
-    $user = auth()->user();
-
-    DB::beginTransaction();
-    try {
-        $service = Service::where('id', $id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (!$service) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Liste des services récupérée avec succès.',
+                'data'    => $services
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Service introuvable ou non autorisé.'
-            ], 404);
+                'message' => 'Erreur lors de la récupération des services',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        $service->delete();
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Service supprimé avec succès.'
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'La suppression du service a échoué.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
+    public function delete($id)
+    {
+        $user = auth()->user();
 
+        DB::beginTransaction();
+        try {
+            $service = Service::where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
 
+            if (!$service) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Service introuvable ou non autorisé.'
+                ], 404);
+            }
+
+            $service->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Service supprimé avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'La suppression du service a échoué.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function update($request, $id)
+    {
+        $user = $request->user();
+        DB::beginTransaction();
+        try {
+            // 1️⃣ Validate input
+            $validator = Validator::make($request->all(), [
+                'name'            => 'required|string|max:255',
+                'category_id'     => 'nullable|integer|exists:categories,id',
+                'custom_category' => 'nullable|string|max:255',
+                'status'          => 'nullable|in:en_attente,validee,refusee,archivee',
+                'description'     => 'required|string',
+                'price_ht'        => 'required|numeric|min:0',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Erreur de validation',
+                    'errors'  => $validator->errors()
+                ], 422);
+            }
+
+            $service = Service::where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$service) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Service introuvable ou non autorisé pour cet utilisateur.'
+                ], 404);
+            }
+            $service->name = $request->name;
+            $service->category_id = $request->category_id;
+            $service->custom_category = $request->custom_category;
+            $service->status = $request->status ?? $service->status;
+            $service->description = $request->description;
+            $service->price_ht = $request->price_ht;
+            $service->save();
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Service mis à jour avec succès.',
+                'service' => $service,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Échec de la mise à jour',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
