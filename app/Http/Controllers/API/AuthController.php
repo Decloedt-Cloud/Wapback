@@ -266,4 +266,17 @@ class AuthController extends Controller
     {
         return $this->authRepository->resendConfirmation($request);
     }
+
+    public function resendConfirmationWeb(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+
+        Mail::to($user->email)->send(new IntervenantConfirmationMail($user));
+
+        return redirect()->back()->with('status', '✅ Nouveau lien de vérification envoyé !');
+    }
 }

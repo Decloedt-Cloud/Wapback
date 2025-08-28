@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class IntervenantRepository implements IntervenantRepositoryInterface
@@ -29,9 +30,8 @@ class IntervenantRepository implements IntervenantRepositoryInterface
 
         $validator = Validator::make($request->all(), [
             'type_entreprise' => 'nullable|in:Auto-Entrepreneur,Freelancer,Entreprise',
-            'nom_entreprise' => 'nullable:type_entreprise,Entreprise',
+            'nom_entreprise' =>'nullable|string',
             'activite_entreprise' => 'nullable|string',
-            'categorie_activite' => 'nullable|string',
             'ville' => 'nullable|string',
             'adresse' => 'nullable|string',
             'telephone' => 'nullable|string',
@@ -52,7 +52,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
 
             // files
             'photo_profil' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'documents.*' => 'file|mimes:pdf,doc,docx|max:5120',
+            'documents.*' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
 
 
         ]);
@@ -67,7 +67,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
         try {
             DB::beginTransaction();
 
-            $user = $request->user(); // ou auth()->user()
+            $user = Auth::user();
 
             // Vérifie si l'intervenant existe déjà pour cet utilisateur
             $intervenant = Intervenant::where('user_id', $user->id)->first();
@@ -99,7 +99,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             $intervenant->save();
 
 
-            $user = auth()->user();
+            $user = Auth::user();
             $user->name = $request->nom . '  ' . $request->prenom;
             $user->profil_rempli = true;
             $user->save();
