@@ -27,8 +27,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
             $table->boolean('cat_killbill')->default(false);
+            $table->timestamp('archived_at')->nullable();
             $table->timestamps();
-
         });
     }
 

@@ -74,5 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //service
     Route::post('service/plan', [ServiceController::class, 'storeSimplePlan']); // Create simple plan in Kill Bill
     Route::apiResource('service', controller: ServiceController::class);
+Route::post('/service/{id}/toggle-archive', [ServiceController::class, 'toggleArchive']);
+
 
 });
