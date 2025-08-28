@@ -31,6 +31,13 @@ Route::post('/resend-confirmation', [AuthController::class, 'resendConfirmation'
 Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
 
+
+    // Vérifie si le lien est expiré ou invalide (middleware 'signed' fait déjà ça)
+    if (! $request->hasValidSignature()) {
+        // Rediriger vers le front React
+        return redirect()->away('http://preprod.hellowap.com/Confirm?email=' . urlencode($user->email));
+    }
+
     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
         return response()->json(['message' => 'Lien de vérification invalide'], 403);
     }
@@ -41,7 +48,8 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) 
     $user->markEmailAsVerified();
 
     return redirect('http://preprod.hellowap.com/Login?verified=1');
-})->middleware('signed')->name('verification.verify');
+})->name('verification.verify');
+// })->middleware('signed')->name('verification.verify');
 
 
 
@@ -74,7 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     //service
     Route::post('service/plan', [ServiceController::class, 'storeSimplePlan']); // Create simple plan in Kill Bill
     Route::apiResource('service', controller: ServiceController::class);
-Route::post('/service/{id}/toggle-archive', [ServiceController::class, 'toggleArchive']);
+
+    Route::post('/service/{id}/toggle-archive', [ServiceController::class, 'toggleArchive']);
+
 
 
 });

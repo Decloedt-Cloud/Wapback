@@ -14,4 +14,6 @@ interface ServiceRepositoryInterface{
     public function delete($id);
     public function toggleArchive($id);
 
+    public  function update( $request , $id);
+
 }
