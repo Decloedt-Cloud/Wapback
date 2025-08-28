@@ -148,4 +148,10 @@ class ServiceController extends Controller
     //         ], 500);
     //     }
     // }
+
+    public function toggleArchive($id)
+{
+    return $this->serviceRepository->toggleArchive($id);
+}
+
 }
