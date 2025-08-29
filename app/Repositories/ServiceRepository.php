@@ -149,7 +149,7 @@ class ServiceRepository implements ServiceRepositoryInterface
 
             return response()->json([
                 'success' => true,
-                'message' => 'Service créé avec succès. Statut : En attente de validation par l’Admin.',
+                'message' => "Service créé avec succès.\nEn attente de validation par l’Admin.",
                 'vendor' => $vendor,
                 'service' => $service,
             ]);
@@ -162,114 +162,113 @@ class ServiceRepository implements ServiceRepositoryInterface
             ], 500);
         }
     }
-    
-public function index()
-{
-    try {
+
+    public function index()
+    {
+        try {
+            $user = auth()->user();
+
+            // Fetch all services including archived
+            $services = Service::with('category:id,nom')
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Liste complète des services récupérée avec succès.',
+                'data'    => $services
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des services',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function delete($id)
+    {
         $user = auth()->user();
 
-        // Fetch all services including archived
-        $services = Service::
-            with('category:id,nom')
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        DB::beginTransaction();
+        try {
+            $service = Service::where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Liste complète des services récupérée avec succès.',
-            'data'    => $services
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur lors de la récupération des services',
-            'error'   => $e->getMessage()
-        ], 500);
-    }
-}
+            if (!$service) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Service introuvable ou non autorisé.'
+                ], 404);
+            }
 
+            $service->delete();
 
-public function delete($id)
-{
-    $user = auth()->user();
+            DB::commit();
 
-    DB::beginTransaction();
-    try {
-        $service = Service::where('id', $id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (!$service) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Service supprimé avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Service introuvable ou non autorisé.'
-            ], 404);
+                'message' => 'La suppression du service a échoué.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $service->delete();
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Service supprimé avec succès.'
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'La suppression du service a échoué.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 
-public function toggleArchive($id)
-{
-    $user = auth()->user();
+    public function toggleArchive($id)
+    {
+        $user = auth()->user();
 
-    DB::beginTransaction();
-    try {
+        DB::beginTransaction();
+        try {
 
-        $service = Service::where('id', $id)->where('user_id', $user->id)->first();
+            $service = Service::where('id', $id)->where('user_id', $user->id)->first();
 
-        
 
-        if (!$service) {
+
+            if (!$service) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Service introuvable ou non autorisé.'
+                ], 404);
+            }
+
+
+            if ($service->archived_at) {
+                // Désarchiver
+                $service->archived_at = null;
+                $message = 'Service désarchivé avec succès.';
+            } else {
+                // Archiver
+                $service->archived_at = now();
+                $message = 'Service archivé avec succès.';
+            }
+            $service->save();
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'service' => $service
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Service introuvable ou non autorisé.'
-            ], 404);
+                'message' => 'Erreur lors de l’archivage/désarchivage.',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-      
-       if ($service->archived_at) {
-            // Désarchiver
-            $service->archived_at = null;
-            $message = 'Service désarchivé avec succès.';
-        } else {
-            // Archiver
-            $service->archived_at = now();
-            $message = 'Service archivé avec succès.';
-        }
-        $service->save();
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'service' => $service
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'success' => false,
-            'message' => 'Erreur lors de l’archivage/désarchivage.',
-            'error'   => $e->getMessage()
-        ], 500);
     }
-}
 
     public function update($request, $id)
     {
