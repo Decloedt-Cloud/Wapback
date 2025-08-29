@@ -109,10 +109,9 @@ class AuthRepository implements AuthRepositoryInterface
     {
         $user = User::where('email', operator: $request->email)->firstOrFail();
 
-        // Générer l’URL temporaire signée Laravel backend
         $signedUrl = URL::temporarySignedRoute(
             'password.reset',
-            Carbon::now()->addMinutes(60),
+            Carbon::now()->addMinutes(value: 2),
             ['email' => $user->email]
         );
 

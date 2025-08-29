@@ -24,14 +24,27 @@ Route::post('/register-client-step1', [AuthController::class, 'registerClientSte
 
 Route::post('/forgot-password', [AuthController::class, 'sendResetEmail']);
 Route::get('/reset-password', [AuthController::class, 'verifyResetLink'])->name('password.reset');
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/resend-confirmation', [AuthController::class, 'resendConfirmation']);
 
 
+
+// Vérifier reset-password
+// Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+
+Route::get('/reset-password', function (Request $request) {
+    if (! $request->hasValidSignature()) {
+        return redirect()->away('http://preprod.hellowap.com/request-reset?expired=1');
+    }
+    return redirect()->away('http://preprod.hellowap.com/reset-password?email=' . urlencode($request->email));
+})->name('password.reset');
+
+
+
+// Vérifier mail
 Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
-
- // 1️⃣ Vérifier la validité du lien
+    // 1️⃣ Vérifier la validité du lien
     if (! $request->hasValidSignature()) {
         // Si déjà vérifié → login
         if ($user->hasVerifiedEmail()) {
@@ -52,7 +65,6 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) 
 
     return redirect('http://preprod.hellowap.com/Login?verified=1');
 })->name('verification.verify');
-// })->middleware('signed')->name('verification.verify');
 
 
 
@@ -87,7 +99,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('service', controller: ServiceController::class);
 
     Route::post('/service/{id}/toggle-archive', [ServiceController::class, 'toggleArchive']);
-
-
-
 });
