@@ -182,7 +182,7 @@
                                 répondra à vos besoins.</p>
 
                             <p>Si vous avez des questions concernant l'utilisation de notre plateforme, notre équipe
-                                support est à votre disposition : <a href="mailto:clients@wap.com">clients@wap.com</a>
+                                support est à votre disposition : <a href="mailto:wapserviice@gmail.com">wapserviice@gmail.com</a>
                             </p>
 
                             <p>Merci,<br><strong>L'équipe WAP Clients</strong></p>
@@ -195,13 +195,13 @@
                     <table>
                         <tr>
                             <td style="text-align: left; width: 33%;">
-                                <span style="color: #fff; font-size: 12px;">Contact clients: clients@wap.com</span>
+                                <span style="color: #fff; font-size: 12px;">Contact clients: wapserviice@gmail.com</span>
                             </td>
                             <td style="text-align: center; width: 34%;">
                                 © {{ now()->year }} WAP. Tous droits réservés.
                             </td>
                             <td style="text-align: right; width: 33%;">
-                                <span style="color: #fff; font-size: 12px;">www.wap.com/clients</span>
+                                <span style="color: #fff; font-size: 12px;">www.hellowap.com</span>
                             </td>
                         </tr>
                     </table>

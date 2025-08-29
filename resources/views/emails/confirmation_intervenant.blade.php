@@ -151,7 +151,7 @@
 
                             <p>Dans les prochains jours, notre équipe vous contactera pour finaliser la vérification de votre profil.</p>
 
-                            <p>Si vous avez des questions concernant le processus d'inscription intervenant, contactez-nous à : <a href="mailto:intervenants@wap.com">intervenants@wap.com</a></p>
+                            <p>Si vous avez des questions concernant le processus d'inscription intervenant, contactez-nous à : <a href="mailto:wapserviice@gmail.com">wapserviice@gmail.com</a></p>
 
                             <p>Merci,<br><strong>L'équipe WAP Intervenants</strong></p>
                         </div>
@@ -163,13 +163,13 @@
                     <table>
                         <tr>
                             <td style="text-align: left; width: 33%;">
-                                <span style="color: #fff; font-size: 12px;">Contact intervenants: intervenants@wap.com</span>
+                                <span style="color: #fff; font-size: 12px;">Contact intervenants: wapserviice@gmail.com</span>
                             </td>
                             <td style="text-align: center; width: 34%;">
                                 © 2025 WAP. Tous droits réservés.
                             </td>
                             <td style="text-align: right; width: 33%;">
-                                <span style="color: #fff; font-size: 12px;">www.wap.com/intervenants</span>
+                                <span style="color: #fff; font-size: 12px;">www.hellowap.com</span>
                             </td>
                         </tr>
                     </table>
