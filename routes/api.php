@@ -31,10 +31,13 @@ Route::post('/resend-confirmation', [AuthController::class, 'resendConfirmation'
 Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
 
-
-    // Vérifie si le lien est expiré ou invalide (middleware 'signed' fait déjà ça)
+ // 1️⃣ Vérifier la validité du lien
     if (! $request->hasValidSignature()) {
-        // Rediriger vers le front React
+        // Si déjà vérifié → login
+        if ($user->hasVerifiedEmail()) {
+            return redirect('http://preprod.hellowap.com/Login?already_verified=1');
+        }
+        // Sinon → demander de renvoyer un mail
         return redirect()->away('http://preprod.hellowap.com/Confirm?email=' . urlencode($user->email));
     }
 
