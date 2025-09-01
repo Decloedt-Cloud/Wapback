@@ -107,23 +107,25 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function sendResetEmail($request)
     {
-        $user = User::where('email', operator: $request->email)->firstOrFail();
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
 
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        // 🔹 Lien temporaire signé valable 2 minutes
         $signedUrl = URL::temporarySignedRoute(
-            'password.reset',
-            Carbon::now()->addMinutes(value: 2),
+            'password.reset',      // route backend
+            now()->addMinutes(2),  // expiration 2 minutes
             ['email' => $user->email]
         );
 
-        $queryString = parse_url($signedUrl, PHP_URL_QUERY);
-
-
-        $resetUrl = 'http://preprod.hellowap.com/reset-password?' . $queryString;
-
-        Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+        // 🔹 On envoie ce lien complet dans l'email
+        Mail::to($user->email)->send(new PasswordResetMail($user, $signedUrl));
 
         return response()->json(['message' => 'Email de réinitialisation envoyé']);
     }
+
 
     public function verifyResetLink($request)
     {

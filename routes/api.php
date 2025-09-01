@@ -29,7 +29,7 @@ Route::post('/resend-confirmation', [AuthController::class, 'resendConfirmation'
 
 
 // Vérifier reset-password
-// Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
 Route::get('/reset-password', function (Request $request) {
