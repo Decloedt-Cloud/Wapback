@@ -31,12 +31,15 @@ Route::post('/resend-confirmation', [AuthController::class, 'resendConfirmation'
 // Vérifier reset-password
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-
 Route::get('/reset-password', function (Request $request) {
     if (! $request->hasValidSignature()) {
-        return redirect()->away('http://preprod.hellowap.com/request-reset?expired=1');
+        return redirect()->away(
+            'http://preprod.hellowap.com/request-reset?expired=1&message=' . urlencode("Le lien n’est plus valide, merci d’envoyer une nouvelle demande de confirmation.")
+        );
     }
-    return redirect()->away('http://preprod.hellowap.com/reset-password?email=' . urlencode($request->email));
+    return redirect()->away(
+        'http://preprod.hellowap.com/reset-password?email=' . urlencode($request->email)
+    );
 })->name('password.reset');
 
 
