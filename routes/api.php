@@ -44,23 +44,21 @@ Route::get('/reset-password', function (Request $request) {
 
 
 
-// Vérifier mail
 Route::get('/verify-email/{id}/{hash}', function (Request $request, $id, $hash) {
     $user = User::findOrFail($id);
-    // 1️⃣ Vérifier la validité du lien
+
     if (! $request->hasValidSignature()) {
-        // Si déjà vérifié → login
         if ($user->hasVerifiedEmail()) {
             return redirect('http://preprod.hellowap.com/Login?already_verified=1');
         }
-        // Sinon → demander de renvoyer un mail
-        return redirect()->away('http://preprod.hellowap.com/Confirm?email=' . urlencode($user->email));
+        $redirectUrl = 'http://preprod.hellowap.com/Confirm?email=' . urlencode($user->email)
+            . '&message=' . urlencode("Le lien n’est plus valide, merci d’envoyer une nouvelle demande de confirmation");
+        return redirect()->away($redirectUrl);
     }
 
     if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
         return response()->json(['message' => 'Lien de vérification invalide'], 403);
     }
-
     if ($user->hasVerifiedEmail()) {
         return redirect('http://preprod.hellowap.com/Login?already_verified=1');
     }
