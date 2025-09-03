@@ -27,7 +27,7 @@ return [
         'http://127.0.0.1:3000',
         'http://localhost:8000',
         // Add your production domain here when deploying
-        'http://localhost:5173'
+        'http://preprod.hellowap.com'
     ],
 
     'allowed_origins_patterns' => [],
