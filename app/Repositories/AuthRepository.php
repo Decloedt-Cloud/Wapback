@@ -163,7 +163,11 @@ class AuthRepository implements AuthRepositoryInterface
         try {
             $user = User::where('email', $request->email)->first();
 
-            Mail::to($user->email)->send(mailable: new IntervenantConfirmationMail($user));
+            if ($user && $user->hasRole('Intervenant')) {
+                Mail::to($user->email)->send(mailable: new IntervenantConfirmationMail($user));
+            } else {
+                Mail::to($user->email)->send(mailable: new ClientConfirmationMail($user));
+            }
 
             return response()->json([
                 'message' => 'Email de confirmation renvoyé avec succès.'
