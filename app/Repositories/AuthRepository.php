@@ -27,7 +27,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['Les identifiants fournis sont incorrects.'],
             ]);
         }
 
@@ -85,6 +85,8 @@ class AuthRepository implements AuthRepositoryInterface
             'name' => '',
             'password' => Hash::make($request->password),
         ]);
+
+
         $user->assignRole('intervenant');
 
         Intervenant::create([
@@ -109,6 +111,10 @@ class AuthRepository implements AuthRepositoryInterface
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email'    => 'Veuillez saisir une adresse e-mail valide.',
+            'email.exists'   => 'Cette adresse e-mail n’existe pas dans notre base de données.',
         ]);
 
         $user = User::where('email', $request->email)->firstOrFail();
@@ -143,7 +149,15 @@ class AuthRepository implements AuthRepositoryInterface
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8|confirmed', // requires password_confirmation
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email' => 'Veuillez entrer une adresse e-mail valide.',
+            'email.exists' => 'Aucun compte n’est associé à cette adresse e-mail.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -158,6 +172,10 @@ class AuthRepository implements AuthRepositoryInterface
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email' => 'Veuillez entrer une adresse e-mail valide.',
+            'email.exists' => 'Aucun compte n’est associé à cette adresse e-mail.',
         ]);
 
         try {
