@@ -151,12 +151,9 @@ class AuthRepository implements AuthRepositoryInterface
             'email' => 'required|email|exists:users,email',
             'password' => 'required|string|min:8|confirmed',
         ], [
-            // Messages pour l'email
             'email.required' => 'L’adresse e-mail est obligatoire.',
             'email.email' => 'Veuillez entrer une adresse e-mail valide.',
             'email.exists' => 'Aucun compte n’est associé à cette adresse e-mail.',
-
-            // Messages pour le mot de passe
             'password.required' => 'Le mot de passe est obligatoire.',
             'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',

@@ -82,12 +82,9 @@ class AuthController extends Controller
                     'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
                 ],
             ], [
-                // Messages pour l'email
                 'email.required' => 'L’adresse e-mail est obligatoire.',
                 'email.email' => 'Veuillez entrer une adresse e-mail valide.',
                 'email.unique' => 'Cette adresse e-mail est déjà utilisée.',
-
-                // Messages pour le mot de passe
                 'password.required' => 'Le mot de passe est obligatoire.',
                 'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
                 'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
@@ -201,14 +198,11 @@ class AuthController extends Controller
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
             ],
         ], [
-            // Messages pour l'email
             'email.required' => 'L’adresse e-mail est obligatoire.',
             'email.string' => 'L’adresse e-mail doit être une chaîne de caractères.',
             'email.email' => 'Veuillez entrer une adresse e-mail valide.',
             'email.max' => 'L’adresse e-mail ne doit pas dépasser 255 caractères.',
             'email.unique' => 'Cette adresse e-mail est déjà utilisée.',
-
-            // Messages pour le mot de passe
             'password.required' => 'Le mot de passe est obligatoire.',
             'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
