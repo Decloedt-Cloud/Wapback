@@ -18,7 +18,7 @@ class CategorieRepository implements CategorieRepositoryInterface
     public function index()
     {
         $categorie = Categorie::where('status', 'active')->get();
-         return response()->json([
+        return response()->json([
             'success' => true,
             'categories' => $categorie
         ]);
@@ -34,7 +34,6 @@ class CategorieRepository implements CategorieRepositoryInterface
 
     public function store($request)
     {
-
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:255|unique:categories,nom',
             'description' => 'required|string',
@@ -87,7 +86,6 @@ class CategorieRepository implements CategorieRepositoryInterface
             ], 404);
         }
 
-        // Validation with custom messages
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:255|unique:categories,nom,' . $id,
             'description' => 'required|string',
@@ -108,17 +106,13 @@ class CategorieRepository implements CategorieRepositoryInterface
         }
 
         try {
+
             DB::beginTransaction();
-
             $user = $request->user();
-            // Keep same logic: Intervenant updates => en_attente, others => active
-            // $status = $user->hasRole('Intervenant') ? 'en_attente' : 'active';
-
             $categorie->nom = $request->nom;
             $categorie->description = $request->description;
             $categorie->status = "active";
             $categorie->save();
-
             DB::commit();
 
             return response()->json([

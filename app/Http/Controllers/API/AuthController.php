@@ -38,6 +38,10 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+        ], [
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email' => 'Veuillez entrer une adresse e-mail valide.',
+            'password.required' => 'Le mot de passe est obligatoire.',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -77,6 +81,18 @@ class AuthController extends Controller
                     'confirmed',
                     'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
                 ],
+            ], [
+                // Messages pour l'email
+                'email.required' => 'L’adresse e-mail est obligatoire.',
+                'email.email' => 'Veuillez entrer une adresse e-mail valide.',
+                'email.unique' => 'Cette adresse e-mail est déjà utilisée.',
+
+                // Messages pour le mot de passe
+                'password.required' => 'Le mot de passe est obligatoire.',
+                'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
+                'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+                'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+                'password.regex' => 'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial (@$!%*?&).',
             ]);
 
             $user = User::create([
@@ -173,31 +189,6 @@ class AuthController extends Controller
     }
 
 
-    // public function registerClient(Request $request)
-    // {
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => [
-    //             'required',
-    //             'string',
-    //             'min:8',
-    //             'confirmed',
-    //             'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
-    //         ],
-    //         'sexe' => 'required|in:Homme,Femme',
-    //         'nom' => 'required|string|max:255',
-    //         'prenom' => 'nullable|string|max:255',
-    //         'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
-    //         'adresse' => 'required|string|max:255',
-    //         'indicatif' => 'nullable|string|max:10',
-    //         'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
-    //         'conditions' => 'accepted',
-    //     ]);
-
-    //     return $this->authRepository->registerClient($request);
-    // }
-
     public function registerIntervenant(Request $request)
     {
         $request->validate([
@@ -209,15 +200,21 @@ class AuthController extends Controller
                 'confirmed',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/',
             ],
-            // 'type_entreprise' => 'required|in:Auto-Entrepreneur,Freelancer,Entreprise',
-            // 'nom_entreprise' => 'required_if:type_entreprise,Entreprise|string|max:255',
-            // 'activite_entreprise' => 'nullable|string|max:255',
-            // 'categorie_activite' => 'nullable|string|max:255',
-            // 'ville' => 'required|string|max:255',
-            // 'adresse' => 'required|string|max:255',
-            // 'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
-        ]);
+        ], [
+            // Messages pour l'email
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.string' => 'L’adresse e-mail doit être une chaîne de caractères.',
+            'email.email' => 'Veuillez entrer une adresse e-mail valide.',
+            'email.max' => 'L’adresse e-mail ne doit pas dépasser 255 caractères.',
+            'email.unique' => 'Cette adresse e-mail est déjà utilisée.',
 
+            // Messages pour le mot de passe
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.string' => 'Le mot de passe doit être une chaîne de caractères.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            'password.regex' => 'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial (@$!%*?&).',
+        ]);
 
         return $this->authRepository->registerIntervenant($request);
     }
@@ -246,6 +243,10 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'L’adresse e-mail est obligatoire.',
+            'email.email' => 'Veuillez entrer une adresse e-mail valide.',
+            'email.exists' => 'Aucun compte n’est associé à cette adresse e-mail.',
         ]);
         return $this->authRepository->sendResetEmail($request);
     }

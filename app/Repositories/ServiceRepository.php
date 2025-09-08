@@ -168,7 +168,6 @@ class ServiceRepository implements ServiceRepositoryInterface
         try {
             $user = auth()->user();
 
-            // Fetch all services including archived
             $services = Service::with('category:id,nom')
                 ->where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
