@@ -184,8 +184,6 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
-
     public function registerIntervenant(Request $request)
     {
         $request->validate([
