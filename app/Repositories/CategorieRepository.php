@@ -26,7 +26,7 @@ class CategorieRepository implements CategorieRepositoryInterface
 
     public function categorieUser($request)
     {
-        $user = $request->user(); // ou auth()->user()
+        $user = $request->user();
         $categorie = Categorie::where('user_id', $user->id)->get();
         return $categorie;
     }
@@ -55,7 +55,6 @@ class CategorieRepository implements CategorieRepositoryInterface
         try {
             DB::beginTransaction();
             $user = $request->user();
-            // $status = $user->hasRole('Intervenant') ? 'en_attente' : 'active';
             $categorie  = new Categorie();
             $categorie->user_id = $request->user()->id;
             $categorie->status = "active";

@@ -30,7 +30,7 @@ class IntervenantRepository implements IntervenantRepositoryInterface
 
         $validator = Validator::make($request->all(), [
             'type_entreprise' => 'nullable|in:Auto-Entrepreneur,Freelancer,Entreprise',
-            'nom_entreprise' =>'nullable|string',
+            'nom_entreprise' => 'nullable|string',
             'activite_entreprise' => 'nullable|string',
             'ville' => 'nullable|string',
             'adresse' => 'nullable|string',
@@ -41,20 +41,14 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             'date_naissance' => 'nullable|date',
             'langue_maternelle' => 'nullable|string',
             'lieu_naissance' => 'nullable|string',
-            'competences' => 'nullable|array', // tableau attendu
-            'competences.*' => 'string',       // chaque compétence doit être une chaîne
-
-            // Disponibilités
+            'competences' => 'nullable|array',
+            'competences.*' => 'string',
             'disponibilites' => 'nullable|array',
             'disponibilites.*.jour' => 'required_with:disponibilites|string',
             'disponibilites.*.heure_debut' => 'required_with:disponibilites|date_format:H:i',
             'disponibilites.*.heure_fin' => 'required_with:disponibilites|date_format:H:i|after:disponibilites.*.heure_debut',
-
-            // files
             'photo_profil' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-
-
         ]);
 
         if ($validator->fails()) {
