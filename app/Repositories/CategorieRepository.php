@@ -9,8 +9,7 @@ use App\Repositories\Interfaces\CategorieRepositoryInterface;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use GuzzleHttp\Client;
-
-
+use Illuminate\Support\Facades\Storage;
 
 class CategorieRepository implements CategorieRepositoryInterface
 {
@@ -79,7 +78,7 @@ class CategorieRepository implements CategorieRepositoryInterface
                 $filepath = $file->storeAs('', $filename, 'categorie_attachments');
 
                 // Save the relative path in DB
-                $categorie->image_path = 'categorie_attachments/' . $filename;
+                $categorie->image_path = $filename;
             }
             $categorie->save();
             DB::commit();
@@ -153,7 +152,7 @@ class CategorieRepository implements CategorieRepositoryInterface
 
     public function destroy($id)
     {
-        $categorie = Categorie::find($id);
+        $categorie = Categorie::where('id', $id)->first();
 
         if (!$categorie) {
             return response()->json([
@@ -163,10 +162,11 @@ class CategorieRepository implements CategorieRepositoryInterface
         try {
             DB::beginTransaction();
 
+            if ($categorie->image_path) {
+                Storage::disk('categorie_attachments')->delete($categorie->image_path);
+            }
             $categorie->delete();
-
             DB::commit();
-
             return response()->json([
                 'message' => 'Catégorie supprimée avec succès',
                 'data' => $categorie
