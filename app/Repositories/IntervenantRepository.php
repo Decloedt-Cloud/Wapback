@@ -98,8 +98,6 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             $user->profil_rempli = true;
             $user->save();
 
-
-            //🛠️ save les disponibilités avant la création
             $disponibilites = $request->disponibilites ?? [];
             foreach ($disponibilites as $dispo) {
                 IntervenantDisponibilite::create([
@@ -113,13 +111,12 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             if ($request->hasFile('files')) {
                 $file = $request->file('file');
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $filepath = $file->storeAs('', $filename, 'intervenant_attachments'); // stocke dans storage/app/intervenant_attachments
-                // Sauvegarder en base de données
+                $filepath = $file->storeAs('', $filename, 'intervenant_attachments');
                 $doc = new IntervenantDocument();
                 $doc->intervenant_id = $intervenant->id;
                 $doc->type = $request->type;
                 $doc->filename = $filename;
-                $doc->filepath = $filepath; // chemin relatif dans storage
+                $doc->filepath = $filepath;
                 $doc->mime_type = $file->getClientMimeType();
                 $doc->size = $file->getSize();
                 $doc->save();
