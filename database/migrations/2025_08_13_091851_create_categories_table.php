@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('nom')->unique();
             $table->text('description')->nullable();
+            $table->string('image_path')->nullable();
             $table->enum('status', ['en_attente', 'active', 'rejete'])->default('en_attente');
+            $table->boolean('is_visible')->default(false);
             $table->timestamps();
         });
     }

@@ -46,6 +46,13 @@ return [
             'visibility' => 'private',
         ],
 
+        'categorie_attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/categorie_attachments'),
+            'url' => env('APP_URL') . '/storage/categorie_attachments',
+            'visibility' => 'public',
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
