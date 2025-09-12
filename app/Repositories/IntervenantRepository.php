@@ -82,7 +82,8 @@ class IntervenantRepository implements IntervenantRepositoryInterface
             $intervenant->categorie_activite = $request->categorie_activite;
             $intervenant->ville = $request->ville;
             $intervenant->adresse = $request->adresse;
-            $intervenant->telephone = $request->indicatif . $request->telephone;
+            $intervenant->telephone = $request->telephone;
+            $intervenant->indicatif = "+33";
             $intervenant->sexe = $request->sexe;
             $intervenant->prenom = $request->prenom;
             $intervenant->nom = $request->nom;
