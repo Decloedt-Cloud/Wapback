@@ -132,7 +132,10 @@ class AuthController extends Controller
                 'adresse' => 'required|string|max:255',
                 'nationalite' => ['required', 'regex:/^[A-Z]{2,3}$/'],
                 'indicatif' => 'nullable|string|max:10',
-                'telephone' => ['nullable', 'regex:/^(?:(?:\+|00)33|0)[1-9](?:[\s.-]*\d{2}){4}$/'],
+                'telephone' => [
+                    'nullable',
+                ],
+
                 'date_naissance_jour' => 'required|integer|min:1|max:31',
                 'date_naissance_mois' => 'required|integer|min:1|max:12',
                 'date_naissance_annee' => 'required|integer|min:1900|max:' . now()->year,
